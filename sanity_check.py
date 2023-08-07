@@ -10,7 +10,7 @@ import logging
 
 logging.basicConfig(filename='app.log',
                     filemode='w',
-                    format='%(name)s - %(levelname)s - %(message)s',
+                    format='%(asctime)s : %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 
 class PaperPDFParser:
@@ -129,9 +129,7 @@ def get_entry_id_from_url(url):
     """
     return url.split("/")[-1].split('v')[0]
 
-if __name__ == '__main__':
-    topic = "cs.DL"
-    year = "2013"
+def process(topic, year):
     df = pd.read_csv(f"data/{topic}/{year}/output_{year}_new.csv")
 
     pdfParser = PaperPDFParser()
@@ -139,53 +137,67 @@ if __name__ == '__main__':
     checker = ConsistencyChecker()
 
     for id, row in df.iterrows():
-        results = {}
-        entry_id = get_entry_id_from_url(row["link"])
-        title = row["title"]
-        logging.info(f"Start processing {title}")
-        # Download paper from arxiv
-        paper = next(arxiv.Search(id_list=[entry_id]).results())
+        if id < 100:
+            results = {}
+            entry_id = get_entry_id_from_url(row["link"])
+            title = row["title"]
+            logging.info(f"Start processing {title}")
+            # Download paper from arxiv
+            paper = next(arxiv.Search(id_list=[entry_id]).results())
 
-        try:
-            if os.path.exists(f"./data/{topic}/{year}/pdf/{title}.pdf") == False:
-                paper.download_pdf(dirpath=f"./data/{topic}/{year}/pdf", filename=f"{title}.pdf")
+            try:
+                if os.path.exists(f"./data/{topic}/{year}/pdf/{title}.pdf") == False:
+                    paper.download_pdf(dirpath=f"./data/{topic}/{year}/pdf", filename=f"{title}.pdf")
 
-            # Parse the data of the paper from pdf
-            reference = pdfParser.get_reference(fp=f"./data/{topic}/{year}/pdf/{title}.pdf")
-            results["parsed_reference"] = reference
+                # Parse the data of the paper from pdf
+                reference = pdfParser.get_reference(fp=f"./data/{topic}/{year}/pdf/{title}.pdf")
+                results["parsed_reference"] = reference
 
-            # Get paper reference from Semantic Scholar
-            sch_reference = sch_metadataExtractor.get_reference(arxiv_entry_id=entry_id)
-            sch_reference_formatted = sch_metadataExtractor.format_ref(sch_reference)
-            results["semanticScholarReference"]=sch_reference_formatted
+                # Get paper reference from Semantic Scholar
+                sch_reference = sch_metadataExtractor.get_reference(arxiv_entry_id=entry_id)
+                sch_reference_formatted = sch_metadataExtractor.format_ref(sch_reference)
+                results["semanticScholarReference"]=sch_reference_formatted
 
-            # Check if any references has published year greater than the original paper
-            check1 = checker.check_greater_than_published_year(references=sch_reference,
-                                                                 original_paper_year=year)
-            results["check1"]={
-                "description": "reference published year greater than the original paper or missing",
-                "errors": check1
-            }
+                # Check if any references has published year greater than the original paper
+                check1 = checker.check_greater_than_published_year(references=sch_reference,
+                                                                     original_paper_year=year)
+                results["check1"]={
+                    "description": "reference published year greater than the original paper or missing",
+                    "errors": check1
+                }
 
-            # # Check if there is any duplicates in the reference listed by Semantic Scholar
-            check2 = checker.check_duplicate_entry(sch_reference)
-            results["check2"]={
-                "description": "similar reference with slightly different name in the reference list",
-                "errors": check2
-            }
+                # # Check if there is any duplicates in the reference listed by Semantic Scholar
+                check2 = checker.check_duplicate_entry(sch_reference)
+                results["check2"]={
+                    "description": "similar reference with slightly different name in the reference list",
+                    "errors": check2
+                }
 
-            # # Check if there is any difference between the reference parsed from pdf and reference from SemScholar
-            check3 = checker.check_reference_consistency(ref_sch=sch_reference, ref_metadata=reference)
-            results["check3"]={
-                "description": "The difference in the reference of the Semantic Scholar and parsed reference",
-                "errors": check3
-            }
-            with open(f"./data/{topic}/{year}/sanity_check_results/{title}_{entry_id}.json", "w") as fp:
-                json.dump(results, fp, indent=4)
-            logging.info(f"End processing {title}")
-        except:
-            logging.info(f"Failed processing {title}")
-            pass
+                # # Check if there is any difference between the reference parsed from pdf and reference from SemScholar
+                check3 = checker.check_reference_consistency(ref_sch=sch_reference, ref_metadata=reference)
+                results["check3"]={
+                    "description": "The difference in the reference of the Semantic Scholar and parsed reference",
+                    "errors": check3
+                }
+                with open(f"./data/{topic}/{year}/sanity_check_results/{title}_{entry_id}.json", "w") as fp:
+                    json.dump(results, fp, indent=4)
+                logging.info(f"End processing {title}")
+            except:
+                logging.info(f"Failed processing {title}")
+                pass
+
+if __name__ == '__main__':
+    topics = ["cs.DL",
+              #"cs.DM",
+              #"cs.SI",
+              #"econ.EM",
+              #"math.GM"
+              ]
+    years = [i for i in range(2014, 2024)]
+    for topic in topics:
+        for year in years:
+            process(topic=topic, year=year)
+
 
 
 
