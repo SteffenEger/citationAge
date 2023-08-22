@@ -1,34 +1,34 @@
 cs_topics = [{"cs.AI": "Artificial Intelligence"},
           {"cs.CL":  "Computation and Language"},
-          {"cs.CC":  " Computational Complexity"},
-          {"cs.CE":  " Computational Engineering, Finance and Science"},
-          {"cs.CG":  " Computational Geometry"},
-          {"cs.GT":  " Computer Science and Game Theory"},
-          {"cs.CV":  " Computer Vision and Pattern Recognition"},
-          {"cs.CY":  " Computers and Society"},
-          {"cs.CR":  " Cryptography and Security"},
-          {"cs.DS":  " Data Structures and Algorithms"},
-          {"cs.DB":  " Databases "},
-          {"cs.DL":  " Digital Libraries"},
-          {"cs.DC":  " Distributed, Parallel, and Cluster Computing"},
-          {"cs.LO":  " Formal Languages and Automata Theory"},
-          {"cs.GR":  " Graphics"},
-          {"cs.AR":  " Hardware Architecture"},
-          {"cs.HC":  " Human-Computer Interaction"},
-          {"cs.IR":  " Information Retrieval"},
-          {"cs.IT":  " Information Theory"},
-          {"cs.LO":  " Logic in Computer Science"},
-          {"cs.LG":  " Machine Learning"},
-          {"cs.MS":  " Mathematical Software"},
-          {"cs.MA":  " Multiagent Systems"},
-          {"cs.MM":  " Multimedia"},
-          {"cs.NI":  " Networking and Internet Architecture"},
-          {"cs.NE":  " Neural and Evolutionary Computing"},
-          {"cs.OS":  " Operating Systems"},
-          {"cs.PL":  " Programming Languages"},
-          {"cs.RO":  " Robotics"},
-          {"cs.SE":  " Software Engineering"},
-          {"cs.SC":  " Symbolic Computation"}
+          {"cs.CC":  "Computational Complexity"},
+          {"cs.CE":  "Computational Engineering, Finance and Science"},
+          {"cs.CG":  "Computational Geometry"},
+          {"cs.GT":  "Computer Science and Game Theory"},
+          {"cs.CV":  "Computer Vision and Pattern Recognition"},
+          {"cs.CY":  "Computers and Society"},
+          {"cs.CR":  "Cryptography and Security"},
+          {"cs.DS":  "Data Structures and Algorithms"},
+          {"cs.DB":  "Databases "},
+          {"cs.DL":  "Digital Libraries"},
+          {"cs.DC":  "Distributed, Parallel, and Cluster Computing"},
+          {"cs.LO":  "Formal Languages and Automata Theory"},
+          {"cs.GR":  "Graphics"},
+          {"cs.AR":  "Hardware Architecture"},
+          {"cs.HC":  "Human-Computer Interaction"},
+          {"cs.IR":  "Information Retrieval"},
+          {"cs.IT":  "Information Theory"},
+          {"cs.LO":  "Logic in Computer Science"},
+          {"cs.LG":  "Machine Learning"},
+          {"cs.MS":  "Mathematical Software"},
+          {"cs.MA":  "Multiagent Systems"},
+          {"cs.MM":  "Multimedia"},
+          {"cs.NI":  "Networking and Internet Architecture"},
+          {"cs.NE":  "Neural and Evolutionary Computing"},
+          {"cs.OS":  "Operating Systems"},
+          {"cs.PL":  "Programming Languages"},
+          {"cs.RO":  "Robotics"},
+          {"cs.SE":  "Software Engineering"},
+          {"cs.SC":  "Symbolic Computation"}
 ]
 
 econ_topics=[
@@ -78,4 +78,14 @@ finance_topics =[
     {}
 ]
 
+special_topics = [
+    {"cs.LG":""},
+    {"cs.AI":""}, #doing
+    {"cs.DL":""}, #done
+    {"cs.CV":""},
+    {"cs.SI":""}, #done
+    {"econ.EM":""}, #done
+    {"hep-th":""},
+    {"math.GM":""} #done
+]
 
