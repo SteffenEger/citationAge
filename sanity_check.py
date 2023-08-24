@@ -104,9 +104,9 @@ class ConsistencyChecker:
         ref_metadata_name = []
 
         for ref in ref_sch:
-            ref_sch_name.append(ref['citedPaper']['title'])
+            ref_sch_name.append(ref['citedPaper']['title'].lower())
         for ref in ref_metadata:
-            ref_metadata_name.append(ref['title'])
+            ref_metadata_name.append(ref['title'].lower())
         name_diff = list(set(ref_sch_name) ^ set(ref_metadata_name))
         return name_diff
 
@@ -131,13 +131,13 @@ def get_entry_id_from_url(url):
 
 def process(topic, year):
     df = pd.read_csv(f"data/{topic}/{year}/output_{year}_new.csv")
-
+    print(df.head())
     pdfParser = PaperPDFParser()
     sch_metadataExtractor= SemanticScholarMetadataExtractor()
     checker = ConsistencyChecker()
 
     for id, row in df.iterrows():
-        if id < 100:
+        if id < 50:
             results = {}
             entry_id = get_entry_id_from_url(row["link"])
             title = row["title"]
@@ -187,13 +187,15 @@ def process(topic, year):
                 pass
 
 if __name__ == '__main__':
-    topics = ["cs.DL",
+    topics = [
+              #"cs.DL",
               #"cs.DM",
-              #"cs.SI",
+              "cs.SI",
               #"econ.EM",
               #"math.GM"
               ]
-    years = [i for i in range(2014, 2024)]
+    years = [i for i in range(2018, 2022)]
+
     for topic in topics:
         for year in years:
             process(topic=topic, year=year)

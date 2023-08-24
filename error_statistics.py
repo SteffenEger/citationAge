@@ -31,10 +31,11 @@ def plot(docs, basepath):
     save_path = Path(basepath).parents[0]
     fig1 = plt.figure(figsize=(10, 15))
     plt.title('Reference published year greater than the original paper or missing', fontsize=20)
-    plt.xlabel('# number of docs')
-    plt.ylabel('# numbers of errors')
+    plt.xlabel('# numbers of errors')
+    plt.ylabel('# number of docs')
     plt.hist(error1)
     fig1.savefig(os.path.join(save_path, 'error1.png'))
+    plt.close()
 
 
     # Plot error 2
@@ -45,7 +46,7 @@ def plot(docs, basepath):
     plt.hist(error2)
     fig2.savefig(os.path.join(save_path, 'error2.png'))
     plt.title('Similar reference with slightly different name in the reference list')
-
+    plt.close()
 
     # Plot error 3
     fig3 = plt.figure(figsize=(10, 15))
@@ -54,6 +55,7 @@ def plot(docs, basepath):
     plt.hist(error3)
     fig3.savefig(os.path.join(save_path, 'error3.png'))
     plt.title('The difference in the reference of the Semantic Scholar and parsed reference')
+    plt.close()
 
 def plot_by_cat():
     """
@@ -62,14 +64,19 @@ def plot_by_cat():
     """
 
 if __name__ == '__main__':
-    cats = ["cs.DL"]
-    years = [i for i in range(2013,2020)]
+    cats =  [
+            #"cs.DL",
+            #"cs.DM",
+            "cs.SI",
+            #"econ.EM",
+            #"math.GM"
+              ]
+    years = [i for i in range(2013,2024)]
 
     for year in years:
         for cat in cats:
             basepath = f"data/{cat}/{year}/sanity_check_results/"
             files = os.listdir(basepath)
             plot(files, basepath)
-
 
 
