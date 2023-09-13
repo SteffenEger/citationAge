@@ -139,7 +139,7 @@ def post_processing_cs_oai_data():
             content = json.load(fp)
             for item in content:
                 cats = item["cat"][0].split(" ")
-                if ("cs.LG" in cats) or ("cs.AI" in cats):
+                if "cs.CV" in cats:
                     _ids.append([item["id"], cats])
 
     year_id = {}
@@ -151,7 +151,7 @@ def post_processing_cs_oai_data():
             year_id[year].append({"id": id[0], "cat": cats})
 
     for year, ids in year_id.items():
-        with open(f"data/cs/cs.AI_cs.LG_{year}.json", "w") as fp:
+        with open(f"data/cs.CV/cs.CV_{year}.json", "w") as fp:
             json.dump(year_id[year],fp)
 
 if __name__ == "__main__":
@@ -196,16 +196,18 @@ if __name__ == "__main__":
     # with open(f"data/cs.LG/cs.LG_2013_2023.json", "w") as fp:
     #     json.dump(title, fp, indent=4)
 
-    for year in range(2019, 2024):
-        print(f"Start fetching reference from {year}")
-        results = []
-        with open(f"data/cs/cs.AI_cs.LG_{year}.json") as fp:
-            items = json.load(fp)
-            for i, item in enumerate(tqdm(items)):
-                references = get_reference(item["id"])
-                results.append({"id": item["id"],
-                                "cat": item["cat"],
-                                "reference": references})
+    # for year in range(2019, 2024):
+    #     print(f"Start fetching reference from {year}")
+    #     results = []
+    #     with open(f"data/cs/cs.AI_cs.LG_{year}.json") as fp:
+    #         items = json.load(fp)
+    #         for i, item in enumerate(tqdm(items)):
+    #             references = get_reference(item["id"])
+    #             results.append({"id": item["id"],
+    #                             "cat": item["cat"],
+    #                             "reference": references})
+    #
+    #     with open(f"data/cs.AI/{year}/output.json", "w") as fp:
+    #         json.dump(results,fp, indent=4)
 
-        with open(f"data/cs.AI/{year}/output.json", "w") as fp:
-            json.dump(results,fp, indent=4)
+    post_processing_cs_oai_data()

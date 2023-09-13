@@ -7,6 +7,8 @@ import random
 import statistics
 from sanity_check import PaperPDFParser, get_entry_id_from_url
 from tqdm import tqdm
+from selenium import webdriver
+import time
 
 def choose_random_id(len_samp, num_samp):
     if len_samp < num_samp:
@@ -32,8 +34,8 @@ def sample_and_download(topic, main_year, num_samp):
         entry_ids.append(get_entry_id_from_url(row["link"]))
 
     big_slow_client = arxiv.Client(
-        page_size=1000,
-        delay_seconds=3,
+        page_size=2000,
+        delay_seconds=10,
         num_retries=5
     )
 
@@ -44,6 +46,22 @@ def sample_and_download(topic, main_year, num_samp):
         except:
             logging.info(f"Failed downloading {paper.title}")
             pass
+
+def selenium_download(url):
+    DRIVER_PATH = r'C:\Users\NGUYEH\Downloads\chromedriver_win32\chromedriver.exe'
+    options = webdriver.ChromeOptions()
+    options.add_experimental_option('prefs', {
+        "download.default_directory": os.path.join(os.getcwd(), "Downloads"),
+        # Set directory to save your downloaded files.
+        "download.prompt_for_download": False,  # Downloads the file without confirmation.
+        "download.directory_upgrade": True,
+        "plugins.always_open_pdf_externally": True  # Disable PDF opening.
+    })
+
+    driver = webdriver.Chrome(DRIVER_PATH,options=options)  # Replace with correct path to your chromedriver executable.
+    driver.get("https://arxiv.org/list/hep-lat/1902")  # Base url
+    driver.find_elements(By.XPATH, "/html/body/div[5]/div/dl/dt[1]/span/a[2]")[
+        0].click()  # Clicks the link that would normally open the PDF, now download. Change to fit your needs
 
 def parse_pdf_bulk(topic, main_year):
     pdfParser = PaperPDFParser()
@@ -106,16 +124,31 @@ if __name__ == "__main__":
     #             print("Finished year {year} for cat {cat}")
 
     # cs.CV
-    for year in range(2019, 2024):
-        print(f"Processing documents of year {year} for cat cs.CV")
-        sample_and_download("cs.CV", main_year=year, num_samp=500)
-        print(f"Finished year {year}")
+    # for year in range(2013, 2020):
+    #     print(f"Processing documents of year {year} for cat cs.CV")
+    #     #sample_and_download("cs.CV", main_year=year, num_samp=500)
+    #     parse_pdf_bulk("cs.CV", main_year=year)
+    #     print(f"Finished year {year}")
 
-    # cs.LG
-    # for year in range(2013, 2017):
+    # # cs.LG
+    # for year in range(2015, 2017):
     #     print(f"processing documents of year {year} for cat cs.LG")
-    #     sample_and_download("cs.LG", main_year=year, num_samp=2)
+    #     sample_and_download("cs.LG", main_year=year, num_samp=500)
+    #     time.sleep(300)
     #     print("Finished year {year} for cat {cat}")
 
     # cs.AI
     # hep-th
+    topic = "cs.LG"
+    main_year= 2015
+    with open(f"data/{topic}/{main_year}/science_parse_selected.json", "r") as fp:
+        ids = json.load(fp)["ids"]
+
+    # Read papers data for a year
+    df = pd.read_csv(f"data/{topic}/{main_year}/output_{main_year}_new.csv").to_dict('index')
+    # Processing the papers
+    results = {}
+    for id in tqdm(ids):
+        row = df[id]
+        title = row["link"]
+        print(title)
