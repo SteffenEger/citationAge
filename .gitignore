@@ -2,3 +2,7 @@
 .idea/
 *.json
 *.csv
+__pycache__/compare.cpython-310.pyc
+*.pyc
+*.exe
+*.chromedriver
