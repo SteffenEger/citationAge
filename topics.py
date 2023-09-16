@@ -38,15 +38,22 @@ econ_topics=[
 ]
 
 math_topics = [
-
+    {"math.ST":"Statistics Theory"},
+    {"math.GN":"General Topology"},
+    {"math.NA":"Numerical Analysis"},
+    {"math.OC":"Optimization and Control"}
 ]
 
 physic_topics = [
-
+    {"physics.gen-ph": "General Physics"},
+    {"physics.atom-ph": "Atomic Physics"},
+    {"physics.chem-ph": "Chemical Physics"},
+    {"physics.optics": "Optics"},
+    {"physics.plasm-ph": "Plasma Physics"},
 ]
 
 biology_topics = [
-    {"q-bio.BM":"Biomolecules "},
+    {"q-bio.BM": "Biomolecules "},
     {"q-bio.CB": "Cell Behavior"},
     {"q-bio.GN": "Genomics"},
     {"q-bio.MN": "Molecular Networks"},
@@ -55,15 +62,15 @@ biology_topics = [
     {"q-bio.PE": "Populations and Evolution"},
     {"q-bio.QM": "Quantitative Methods"},
     {"q-bio.SC": "Subcellular Processes"},
-    {"q-bio.SC":"Tissues and Organs"}
+    {"q-bio.SC": "Tissues and Organs"}
 ]
 
 statistics_topics = [
     {"stat.AP":"Applications"},
     {"stat.AP":"Computation "},
-    {"stat.AP":"Machine Learning"},
-    {"stat.ME":"Methodology"},
-    {"stat.OT ":" Other Statistics"},
+    {"stat.AP": "Machine Learning"},
+    {"stat.ME": "Methodology"},
+    {"stat.OT ": "Other Statistics"},
     {"stat.TH":"Statistics Theory"}
 ]
 
@@ -80,12 +87,12 @@ finance_topics =[
 
 special_topics = [
     {"cs.LG":""},
-    {"cs.AI":""}, #doing
-    {"cs.DL":""}, #done
+    {"cs.AI":""},
+    {"cs.DL":""},
     {"cs.CV":""},
-    {"cs.SI":""}, #done
-    {"econ.EM":""}, #done
+    {"cs.SI":""},
+    {"econ.EM":""},
     {"hep-th":""},
-    {"math.GM":""} #done
+    {"math.GM":""}
 ]
 

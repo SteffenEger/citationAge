@@ -1,7 +1,10 @@
+import json
 import os
+import math
 import sys, numpy as np
 import pandas as pd
-
+import matplotlib.pyplot as plt
+import csv
 
 def get_statistics(df, year):
     # Transform into age distance
@@ -15,17 +18,30 @@ def get_statistics(df, year):
 
     return {"mean":mean}
 
-def get_statistics_by_cat(cat_name):
-    for year in range(2013, 2020):
-        with open(f"data/{cat_name}/{year}/output.csv", "r") as fp:
-            df = pd.read_csv(fp, header=0)
-            # Get all col which refers to the ref-age
-            col_names = [col_name for col_name in  df.columns if "ref age" in col_name]
-            # Get dataframe of reference years
-            ref_year_df = df[col_names]
-            # Get all statistics
-            statistics = get_statistics(ref_year_df, year)
-            print(statistics)
+def get_statistics_by_cat(main_year, cat_name):
+    with open(f"data/{cat_name}/{main_year}/output.csv", "r") as fp:
+        df = pd.read_csv(fp, header=0)
+        # Get all col which refers to the ref-age
+        col_names = [col_name for col_name in  df.columns if "ref age" in col_name]
+        # Get dataframe of reference years
+        ref_year = df[col_names].to_numpy()
+
+        results = []
+        for item in ref_year.tolist():
+            citationAges = []
+            clean_citation = []
+            for year in item:
+                if np.isnan(year) != True:
+                    if int(year) < (main_year-20):
+                        clean_citation.append((main_year-20))
+                    else:
+                        clean_citation.append(int(year))
+            for year in clean_citation:
+                citationAges.append(main_year-year)
+
+            if clean_citation:
+                results.append(sum(citationAges)/len(citationAges))
+        return sum(results)/len(results)
 
 def plot(fp):
     # ag = []
@@ -109,6 +125,76 @@ def plot(fp):
     print(years, "1", "%.3f +- %.2f" % (np.mean(agFirst), np.std(agFirst)), "\t%.3f" % np.mean(rec), "\t", papersFirst)
     print(years, "2", "%.3f +- %.2f" % (np.mean(agSecond), np.std(agSecond)), "\t%.3f" % np.mean(rec), "\t", papers)
 
+def get_summary_by_year(main_year, cat):
+    """
+    Get the average citation counts for a category by year
+    :param :
+    :return:
+    """
+    with open(f"data/{cat}/{main_year}/output.json", "r") as fp:
+        items = json.load(fp)
+        #first_half = []
+        #second_half = []
+        joint = []
+
+        for item in items:
+            # Joint
+            citation_years = [ref["year"] for ref in item["reference"] if ref["year"] is not None]
+            clean_citation_years = []
+            for year in citation_years:
+                if year < (main_year-20):
+                    clean_citation_years.append(main_year-20)
+                else:
+                    clean_citation_years.append(year)
+            joint_citationAges = [main_year - year for year in clean_citation_years]
+
+            if joint_citationAges:
+                joint_avgAges = sum(joint_citationAges)/(len(joint_citationAges))
+        return joint_avgAges
+
+                # # First half
+                # first_half_citationAges = [int(ref["year"]) - year for ref in item["reference"]]
+                # first_half_avgAges = sum(first_half_citationAges)/(len(first_half_citationAges))
+                # first_half.append(first_half_avgAges)
+                #
+                # # Second half
+                # second_half_citationAges = [int(ref["year"]) - year for ref in item["reference"]]
+                # second_half_avgAges = sum(second_half_citationAges)/(len(second_half_citationAges))
+                # second_half.append(second_half_avgAges)
+
+    #     results.append({
+    #         "joint": sum(joint_avgAges)/len(joint_avgAges),
+    #                    #"first_half": sum(first_half)/len(first_half),
+    #                    # "second_half": sum(second_half)/len(second_half)
+    #          })
+    # return results
+
+def plot_new(results):
+    """
+
+    :param results:
+    :return:
+    """
+    pass
 
 if __name__ == "__main__":
-    get_statistics_by_cat("cs.CV")
+    age_2020_2023 = []
+    for year in range(2020, 2024):
+        stats = get_summary_by_year(year, cat="cs.CV")
+        age_2020_2023.append(stats)
+
+
+    age_2013_2019 = []
+    for year in range(2013, 2020):
+        age_2013_2019.append(get_statistics_by_cat(cat_name="cs.CV", main_year=year))
+
+    stat = age_2013_2019 + age_2020_2023
+    print(stat)
+    plt.bar([year for year in range(2013,2024)], stat)
+    plt.legend()
+
+    plt.ylabel('Average citation counts')
+    plt.xlabel('Year')
+    plt.title(" Average citation count for cs.CV")
+
+    plt.show()

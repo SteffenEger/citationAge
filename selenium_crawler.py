@@ -3,9 +3,6 @@ import pandas as pd
 import json
 from tqdm import tqdm
 from compare import choose_random_id
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 
 import time
 
@@ -22,8 +19,8 @@ options.add_experimental_option(
 )
 
 class SeleniumCrawler:
-    def __init__(self, options):
-        self.driver = webdriver.Chrome(options=options)
+    def __init__(self, options, chromedriver_path):
+        self.driver = webdriver.Chrome(chromedriver_path, options=options)
 
     def get_pdf(self, url):
         self.driver.get(url)
@@ -41,21 +38,20 @@ def sample_and_download(topic, main_year, num_samp):
 
 
 if __name__ == "__main__":
-    chromedriver_path = r"C:\Users\Nguyen\PycharmProjects\citationAgeCrawler\chromedriver_win32"
     options = webdriver.ChromeOptions()
     options.add_argument('headless')
     options.add_experimental_option(
         'prefs', {
-            "download.default_directory": r"C:\Users\Nguyen\PycharmProjects\citationAgeCrawler\data\cs.SI\2015\pdf",
+            "download.default_directory": r"C:\Users\NGUYEH\PycharmProjects\citationAge\data\cs.LG\2014\pdf",
             "download.prompt_for_download": False,
             "plugins.always_open_pdf_externally": False,
             "plugins.plugins_disabled": ["Chrome PDF Viewer"]
         }
     )
-    crawler = SeleniumCrawler(options)
+    crawler = SeleniumCrawler(chromedriver_path, options)
 
-    topic = "cs.SI"
-    main_year = 2016
+    topic = "cs.LG"
+    main_year = 2014
     sample_and_download(topic, main_year, num_samp=500)
 
     with open(f"data/{topic}/{main_year}/science_parse_selected.json", "r") as fp:
