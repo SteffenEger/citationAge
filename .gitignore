@@ -1,2 +1,4 @@
 *.pdf
-.idea
+.idea/
+*.json
+*.csv
