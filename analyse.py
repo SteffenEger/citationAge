@@ -1,130 +1,41 @@
 import json
 import os
+import statistics
 import math
-import sys, numpy as np
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import csv
+plt.style.use('ggplot')
 
-def get_statistics(df, year):
-    # Transform into age distance
-    df = df.applymap(lambda x: year-x if x < year else 0)
-    df['mean'] = df.mean(axis=1)
-    df['median'] = df.median(axis=1)
-    df['mode'] = df.mode(axis=1)
+def get_statistics_by_cat(cat, threshold):
+    data = []
+    for year in range(2013, 2024):
+        if year != 2017:
+            with open(f"data/{cat}/{year}/output_{year}_new.csv", "r") as fp:
+                df = pd.read_csv(fp, header=0)
+                # Get all col which refers to the ref-age
+                col_names = [col_name for col_name in  df.columns if "ref age" in col_name]
+                # Get dataframe of reference years
+                ref_year = df[col_names].to_numpy().tolist()
+                pub_years = []
+                for i in range(len(ref_year)):
+                    pub_years.extend(ref_year[i])
 
-    print(df.head())
-    mean = df['mean'].mean()
+                pub_ages = normalize_age(pub_years, year, threshold)
+                mean = statistics.mean(pub_ages)
+                mode = statistics.mode(pub_ages)
+                median = statistics.median(pub_ages)
+                data.append([year, mean, mode, median])
 
-    return {"mean":mean}
+    # form dataframe from data
+    df = pd.DataFrame(data, columns=["Year", "Mean", "Mode", "Median"])
 
-def get_statistics_by_cat(main_year, cat_name):
-    with open(f"data/{cat_name}/{main_year}/output.csv", "r") as fp:
-        df = pd.read_csv(fp, header=0)
-        # Get all col which refers to the ref-age
-        col_names = [col_name for col_name in  df.columns if "ref age" in col_name]
-        # Get dataframe of reference years
-        ref_year = df[col_names].to_numpy()
+    # plot multiple columns such as population and year from dataframe
+    df.plot(x="Year", y=[ "Mean", "Mode", "Median"], kind="bar", figsize=(10, 10), fontsize=20)
+    # Save plot
+    plt.savefig(f'data/{cat}/{cat}_threshold_{threshold}.png', format='png', dpi=300)
 
-        results = []
-        for item in ref_year.tolist():
-            citationAges = []
-            clean_citation = []
-            for year in item:
-                if np.isnan(year) != True:
-                    if int(year) < (main_year-20):
-                        clean_citation.append((main_year-20))
-                    else:
-                        clean_citation.append(int(year))
-            for year in clean_citation:
-                citationAges.append(main_year-year)
-
-            if clean_citation:
-                results.append(sum(citationAges)/len(citationAges))
-        return sum(results)/len(results)
-
-def plot(fp):
-    # ag = []
-    agFirst = []
-    agSecond = []
-    rec = []
-    csv_reader = csv.reader(open(fp), delimiter=",")
-
-    # for iline,line in enumerate(sys.stdin):
-    iline = 0
-    papers, papersFirst = 0, 0
-    years = set()
-    N = int(sys.argv[2])
-    # ,year,title,link,Citation Count,Fields of Study,ref
-    for line in csv_reader:
-        if iline == 0:
-            iline += 1
-            continue
-        # x = line.strip().split(",")
-        # x = line.split(",,")
-        x = line
-        ##print(x)
-        year = int(x[1])
-        years.add(year)
-        title = x[2]
-        link = x[3]
-        month = int(link.split("/")[-1].split(".")[0][-2:])
-        if month < 7:
-            ag = agFirst
-            # papersFirst = papers
-            # papers = 0
-        else:
-            ag = agSecond
-        # print("---",x[4])
-        try:
-            cc = int(float(x[4]))
-        except ValueError:
-            sys.stderr.write("CITATION ERROR?" + " ".join(x) + "\n")
-        if cc < N: continue
-        refs = x[6:]
-        # print("###",refs,"+++",x[6])
-        try:
-            int(float(x[6]))
-        except ValueError:
-            sys.stderr.write("ERROR? " + " ".join(x) + "\n")
-            # sys.exit(1)
-
-        ages = {}
-        activ_ref = 0
-        for ref in refs:
-            try:
-                r = int(float(ref))
-            except ValueError:
-                break
-            age = year - r
-            if age > 20: age = 21
-            ages[age] = ages.get(age, 0) + 1
-            activ_ref += 1
-            # if age<0: print("###",x)
-        # print(ages)
-        mean = []
-        recent = ages.get(0, 0)  # +ages.get(0,1)
-        if len(ages) > 5 < len(ages) < 10:
-            # print(title,month,link,ages)
-            pass
-
-        # print(recent,activ_ref)
-        for age in ages:
-            mean.append(age)
-        if mean != []:
-            m = np.mean(mean)
-            ag.append(m)
-            recent_share = recent / activ_ref
-            rec.append(recent_share)
-            # print(refs)
-            if month < 7:
-                papersFirst += 1
-            else:
-                papers += 1
-
-    print(years, "1", "%.3f +- %.2f" % (np.mean(agFirst), np.std(agFirst)), "\t%.3f" % np.mean(rec), "\t", papersFirst)
-    print(years, "2", "%.3f +- %.2f" % (np.mean(agSecond), np.std(agSecond)), "\t%.3f" % np.mean(rec), "\t", papers)
-
+    return df
 def get_summary_by_year(main_year, cat):
     """
     Get the average citation counts for a category by year
@@ -151,50 +62,134 @@ def get_summary_by_year(main_year, cat):
             if joint_citationAges:
                 joint_avgAges = sum(joint_citationAges)/(len(joint_citationAges))
         return joint_avgAges
-
-                # # First half
-                # first_half_citationAges = [int(ref["year"]) - year for ref in item["reference"]]
-                # first_half_avgAges = sum(first_half_citationAges)/(len(first_half_citationAges))
-                # first_half.append(first_half_avgAges)
-                #
-                # # Second half
-                # second_half_citationAges = [int(ref["year"]) - year for ref in item["reference"]]
-                # second_half_avgAges = sum(second_half_citationAges)/(len(second_half_citationAges))
-                # second_half.append(second_half_avgAges)
-
-    #     results.append({
-    #         "joint": sum(joint_avgAges)/len(joint_avgAges),
-    #                    #"first_half": sum(first_half)/len(first_half),
-    #                    # "second_half": sum(second_half)/len(second_half)
-    #          })
-    # return results
-
-def plot_new(results):
+def analyse_science_parse_results(cat):
     """
-
-    :param results:
+    statistics_pdfparse_500.json
     :return:
     """
-    pass
+    # Loading data
+    data = []
+    for year in range(2013, 2024):
+        if os.path.exists(f"data/{cat}/{year}/statistics_pdfparse_500.json"):
+            with open(f"data/{cat}/{year}/statistics_pdfparse_500.json", "r") as fp:
+                content = json.load(fp)
+                item = [year]+list(content.values())
+                data.append(item)
+
+    # form dataframe from data
+    df = pd.DataFrame(data, columns=["Year", "Mean", "Mode", "Median"])
+
+    # plot multiple columns such as population and year from dataframe
+    df.plot(x="Year", y=[ "Mean", "Mode", "Median"], kind="bar", figsize=(10, 10), fontsize=20)
+
+    # Save plot
+    plt.savefig(f'data/{cat}/{cat}_scienceparse.png', format='png', dpi=300)
+def normalize_age(ref_years, year, threshold=20):
+    ages = []
+
+    for pub_year in ref_years:
+        if pub_year and math.isnan(float(pub_year)) is not True:
+            if year - int(pub_year) > threshold:
+                pub_year = year-threshold
+            ages.append(year-int(pub_year))
+    return ages
+def analyse_semsch_results(cat, threshold=20):
+    # Loading data
+    results = []
+    for year in range(2013, 2024):
+        if os.path.exists(f"data/{cat}/{year}/output.json"):
+            with open(f"data/{cat}/{year}/output.json", "r") as fp:
+                content = json.load(fp)
+                reference_year = []
+                #reference_year_first = []
+                #reference_year_second = []
+                for paper in content:
+                    reference_year.extend([ref["year"] for ref in paper["reference"]])
+
+                reference_age = normalize_age(reference_year, year, threshold)
+                #reference_year_first = normalize_age(reference_year_first, year)
+                #reference_year_second = normalize_age(reference_year_second, year)
+                year_mean= statistics.mean(reference_age)
+                year_mode = statistics.mode(reference_age)
+                year_median = statistics.median(reference_age)
+
+                item = [year, year_mean, year_mode, year_median]
+                results.append(item)
+
+    # Form dataframe from data
+    df = pd.DataFrame(results, columns=["Year", "Mean", "Mode", "Median"])
+
+    # Plot multiple columns such as population and year from dataframe
+    df.plot(x="Year", y=["Mean", "Mode", "Median"], kind="bar", figsize=(20, 20))
+
+    # Save plot
+    plt.savefig(f'data/{cat}/{cat}_threshold_{threshold}.png', format='png', dpi=300)
+
+    return df
+def analyse(cat, threshold=20):
+    results = []
+    for year in range(2013, 2024):
+        if os.path.exists(f"data/{cat}/{year}/output.json"):
+            with open(f"data/{cat}/{year}/output.json", "r") as fp:
+                content = json.load(fp)
+                reference_year = []
+                #reference_year_first = []
+                #reference_year_second = []
+                for paper in content:
+                    reference_year.extend([ref["year"] for ref in paper["reference"]])
+
+                reference_age = normalize_age(reference_year, year, threshold)
+                #reference_year_first = normalize_age(reference_year_first, year)
+                #reference_year_second = normalize_age(reference_year_second, year)
+                year_mean= statistics.mean(reference_age)
+                year_mode = statistics.mode(reference_age)
+                year_median = statistics.median(reference_age)
+
+                item = [year, year_mean, year_mode, year_median]
+                results.append(item)
+
+        elif os.path.exists(f"data/{cat}/{year}/output_{year}_new.csv"):
+            with open(f"data/{cat}/{year}/output_{year}_new.csv", "r") as fp:
+                df = pd.read_csv(fp, header=0)
+                # Get all col which refers to the ref-age
+                col_names = [col_name for col_name in  df.columns if "ref age" in col_name]
+                # Get dataframe of reference years
+                ref_year = df[col_names].to_numpy().tolist()
+                pub_years = []
+                for i in range(len(ref_year)):
+                    pub_years.extend(ref_year[i])
+
+                pub_ages = normalize_age(pub_years, year, threshold)
+                mean = statistics.mean(pub_ages)
+                mode = statistics.mode(pub_ages)
+                median = statistics.median(pub_ages)
+                results.append([year, mean, median])
+        else:
+            pass
+
+    # form dataframe from data
+    df = pd.DataFrame(results, columns=["Year", "Mean", "Mode", "Median"])
+
+    # plot multiple columns such as population and year from dataframe
+    df.plot(x="Year", y=["Mean","Mode", "Median"], kind="bar", figsize=(10, 10), fontsize=20)
+    # Save plot
+    plt.savefig(f'data/{cat}/{cat}_threshold_{threshold}.png', format='png', dpi=300)
+
+    return df
 
 if __name__ == "__main__":
-    age_2020_2023 = []
-    for year in range(2020, 2024):
-        stats = get_summary_by_year(year, cat="cs.CV")
-        age_2020_2023.append(stats)
-
-
-    age_2013_2019 = []
-    for year in range(2013, 2020):
-        age_2013_2019.append(get_statistics_by_cat(cat_name="cs.CV", main_year=year))
-
-    stat = age_2013_2019 + age_2020_2023
-    print(stat)
-    plt.bar([year for year in range(2013,2024)], stat)
-    plt.legend()
-
-    plt.ylabel('Average citation counts')
-    plt.xlabel('Year')
-    plt.title(" Average citation count for cs.CV")
-
-    plt.show()
+    cats = [
+            # "cs.AI",
+            # "cs.CV",
+            "cs.CL",
+            # "cs.DL",
+            # "cs.DM",
+            # "cs.LG",
+            # "cs.SI",
+            # "econ.EM",
+            # "hep-th",
+            # "math.GM"
+    ]
+    for cat in cats:
+        df = analyse(cat)
+        df.to_csv(f'data/{cat}/statistic.csv')

@@ -8,7 +8,9 @@ import statistics
 from sanity_check import PaperPDFParser, get_entry_id_from_url
 from tqdm import tqdm
 from selenium import webdriver
+import os
 import time
+from crawler import get_reference
 
 def choose_random_id(len_samp, num_samp):
     if len_samp < num_samp:
@@ -74,6 +76,7 @@ def parse_pdf_bulk(topic, main_year):
     df = pd.read_csv(f"data/{topic}/{main_year}/output_{main_year}_new.csv").to_dict('index')
     # Processing the papers
     results = {}
+
     for id in tqdm(ids):
         row = df[id]
         title = row["title"]
@@ -108,47 +111,66 @@ def parse_pdf_bulk(topic, main_year):
 
     return mean, mode
 
-if __name__ == "__main__":
-    # cs.SI
-    # math.GM
-    # cs.DM
-    # cs.DL
-    # cs.CV 2013-2019
-    # cs.LG 2013-2016
-    # cats = ["math.GM", "cs.SI", "cs.DM", "cs.DL"]
-    # for cat in cats:
-    #     for year in range(2013, 2024):
-    #         print(f"processing documents of year {year} for cat {cat}")
-    #         if year != 2017 and cat != "cs.SI":
-    #             count_citation_pdf_parse(cat, main_year=year, num_samp=500)
-    #             print("Finished year {year} for cat {cat}")
-
-    # cs.CV
-    # for year in range(2013, 2020):
-    #     print(f"Processing documents of year {year} for cat cs.CV")
-    #     #sample_and_download("cs.CV", main_year=year, num_samp=500)
-    #     parse_pdf_bulk("cs.CV", main_year=year)
-    #     print(f"Finished year {year}")
-
-    # # cs.LG
-    # for year in range(2015, 2017):
-    #     print(f"processing documents of year {year} for cat cs.LG")
-    #     sample_and_download("cs.LG", main_year=year, num_samp=500)
-    #     time.sleep(300)
-    #     print("Finished year {year} for cat {cat}")
-
-    # cs.AI
-    # hep-th
-    topic = "cs.LG"
-    main_year= 2015
-    with open(f"data/{topic}/{main_year}/science_parse_selected.json", "r") as fp:
-        ids = json.load(fp)["ids"]
+def parse_pdf_bulk_json(topic, main_year):
+    pdfParser = PaperPDFParser()
 
     # Read papers data for a year
-    df = pd.read_csv(f"data/{topic}/{main_year}/output_{main_year}_new.csv").to_dict('index')
+    pdfs = os.listdir(f"data/{topic}/{main_year}/pdf")
+
     # Processing the papers
     results = {}
-    for id in tqdm(ids):
-        row = df[id]
-        title = row["link"]
-        print(title)
+
+    for pdf in tqdm(pdfs):
+        title = pdf.replace(".pdf", "")
+        # Parse the data of the paper from pdf
+        try:
+            reference_list = pdfParser.get_reference(fp=f"./data/{topic}/{main_year}/pdf/{pdf}")
+            years_list = []
+            for reference in reference_list:
+                years_list.append(reference["year"])
+            results[title] = years_list
+        except:
+            logging.info(f"Failed processing {title}")
+            pass
+
+    # Save the reference for the selected document from science parse
+    with open(f"data/{topic}/{main_year}/reference_science_parse_selected.json", "w") as fp:
+        json.dump(results, fp)
+
+    citation_ages = []
+    for id, item in results.items():
+        for year in item:
+            if year != None:
+                if year < (main_year - 20):
+                    citation_ages.append(20)
+                elif main_year - 20 <= year <= main_year:
+                    citation_ages.append(main_year-year)
+
+
+    mean = statistics.mean(citation_ages)
+    mode = statistics.mode(citation_ages)
+    median = statistics.median(citation_ages)
+
+    with open(f"data/{topic}/{main_year}/statistics_pdfparse_500.json", "w") as fp:
+        json.dump({"mean":mean, "mode": mode, "median": median}, fp)
+
+    return mean, mode
+
+def calculcate_from_science_parse(cat):
+    # Get id from 500
+    results = {}
+    for year in range(2013, 2024):
+        with open(f"data/{cat}/{year}/science_parse_selected.json") as fp:
+            ids = json.load(fp)["ids"]
+            results[year] = ids
+
+    # Crawl data from semantic scholar api
+    for year, ids in results.items():
+
+
+    # Calculated mean mode median
+    pass
+
+if __name__ == "__main__":
+    for year in range(2013, 2024):
+        parse_pdf_bulk_json("cs.DM", year)
