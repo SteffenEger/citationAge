@@ -241,4 +241,20 @@ def plot(docs, basepath):
     plt.close()
 
 if __name__ == "__main__":
+    ## Ploting the difference
+    # cats =  [
+    #         #"cs.DL",
+    #         #"cs.DM",
+    #         "cs.SI",
+    #         #"econ.EM",
+    #         #"math.GM"
+    #           ]
+    # years = [i for i in range(2013,2024)]
+    #
+    # for year in years:
+    #     for cat in cats:
+    #         basepath = f"data/{cat}/{year}/sanity_check_results/"
+    #         files = os.listdir(basepath)
+    #         plot(files, basepath)
+
     calculcate_from_science_parse("math.GM")
