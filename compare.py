@@ -10,7 +10,7 @@ from tqdm import tqdm
 from selenium import webdriver
 import os
 import time
-from crawler import get_reference
+from analyse import normalize_age
 
 def choose_random_id(len_samp, num_samp):
     if len_samp < num_samp:
@@ -158,19 +158,35 @@ def parse_pdf_bulk_json(topic, main_year):
 
 def calculcate_from_science_parse(cat):
     # Get id from 500
-    results = {}
-    for year in range(2013, 2024):
-        with open(f"data/{cat}/{year}/science_parse_selected.json") as fp:
-            ids = json.load(fp)["ids"]
-            results[year] = ids
+    results = []
+    for threshold in [0,20,25,30]:
+        for year in range(2013, 2024):
+            with open(f"data/{cat}/{year}/science_parse_selected.json", "r") as fp:
+                ids = json.load(fp)["ids"]
 
-    # Crawl data from semantic scholar api
-    for year, ids in results.items():
+                with open(f"data/{cat}/{year}/output.json", "r") as fp:
+                    content = json.load(fp)
 
+                    selected_papers = [paper for i, paper in enumerate(content) if i in ids]
+                    ref_years = []
+                    for paper in selected_papers:
+                        for ref in paper["reference"]:
+                            ref_years.append(ref["year"])
+                    ages = normalize_age(ref_years, year, 20)
 
-    # Calculated mean mode median
+                    # Calculated mean mode median
+                    year_mean = statistics.mean(ages)
+                    year_mode = statistics.mode(ages)
+                    year_median = statistics.median(ages)
+
+                    results.append([year, year_mean, year_mode, year_median, threshold])
+
+    # Form dataframe from data
+    df = pd.DataFrame(results, columns=["Year", "Mean", "Mode", "Median", "Threshold"])
+    df.to_csv(f"data/{cat}/statistics_ss_500.csv", index=False)
+
+def calculate_deviation(cat):
     pass
 
 if __name__ == "__main__":
-    for year in range(2013, 2024):
-        parse_pdf_bulk_json("cs.DM", year)
+    calculcate_from_science_parse("math.GM")

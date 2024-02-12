@@ -177,19 +177,61 @@ def analyse(cat, threshold=20):
 
     return df
 
+def analyse_highly_cited(cat, threshold=20):
+    results = []
+    for year in range(2013, 2024):
+        if os.path.exists(f"data/{cat}/{year}/output.json"):
+            with open(f"data/{cat}/{year}/output.json", "r") as fp:
+                content = json.load(fp)
+                reference_year = []
+                #reference_year_first = []
+                #reference_year_second = []
+                for paper in content:
+                    for ref in paper["reference"]:
+                        if ref["influentialCitationCount"]:
+                            if ref["influentialCitationCount"] >= 20:
+                                reference_year.append(ref["year"])
+
+                reference_age = normalize_age(reference_year, year, threshold)
+                #reference_year_first = normalize_age(reference_year_first, year)
+                #reference_year_second = normalize_age(reference_year_second, year)
+                year_mean= statistics.mean(reference_age)
+                year_mode = statistics.mode(reference_age)
+                year_median = statistics.median(reference_age)
+
+                item = [year, year_mean, year_mode, year_median]
+                results.append(item)
+
+    # form dataframe from data
+    df = pd.DataFrame(results, columns=["Year", "Mean", "Mode", "Median"])
+
+    return df
+
+def concat_science_parse_result(cat):
+    results = []
+    for year in range(2013, 2024):
+        with open(f"data/{cat}/{year}/statistics_pdfparse_500.json", "r") as fp:
+            content = json.load(fp)
+            results.append(content)
+
+    df = pd.DataFrame(results)
+    df.to_csv(f"data/{cat}/statistics_sp_500.csv", index=False)
+
+
 if __name__ == "__main__":
     cats = [
-            # "cs.AI",
-            # "cs.CV",
-            "cs.CL",
-            # "cs.DL",
-            # "cs.DM",
-            # "cs.LG",
-            # "cs.SI",
-            # "econ.EM",
-            # "hep-th",
-            # "math.GM"
+            #"cs.AI",
+            #"cs.CV",
+            #"cs.CL",
+            #"cs.DL",
+            #"cs.DM",
+            #"cs.LG",
+            #"cs.SI",
+            #"econ.EM",
+            #"hep-th",
+            "math.GM"
     ]
+
     for cat in cats:
-        df = analyse(cat)
-        df.to_csv(f'data/{cat}/statistic.csv')
+       df =  analyse_highly_cited(cat)
+       df.to_csv(f"data/{cat}/statistics_influencial.csv")

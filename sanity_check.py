@@ -187,19 +187,27 @@ def process(topic, year):
                 pass
 
 if __name__ == '__main__':
-    topics = [
-              #"cs.DL",
-              #"cs.DM",
-              "cs.SI",
-              #"econ.EM",
-              #"math.GM"
-              ]
-    years = [i for i in range(2018, 2022)]
+    # topics = [
+    #           #"cs.DL",
+    #           #"cs.DM",
+    #           "cs.SI",
+    #           #"econ.EM",
+    #           #"math.GM"
+    #           ]
+    # years = [i for i in range(2018, 2022)]
+    #
+    # for topic in topics:
+    #     for year in years:
+    #         process(topic=topic, year=year)
+    from semanticscholar import SemanticScholar
 
-    for topic in topics:
-        for year in years:
-            process(topic=topic, year=year)
-
+    sch = SemanticScholar()
+    #paper = sch.get_paper('10.1093/mind/lix.236.433')
+    #print(paper)
+    reference = sch.get_paper_references('10.18653/v1/N18-3011')
+    for ref in reference:
+        if ref['isInfluential'] == True:
+            print(ref["citedPaper"]["title"])
 
 
 

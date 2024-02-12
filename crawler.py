@@ -9,6 +9,7 @@ import time
 from semanticscholar import  SemanticScholar
 from semanticscholar.Paper import Paper
 from tqdm import tqdm
+import re
 
 def _get_papers(
         self,
@@ -49,16 +50,22 @@ def get_reference(id):
     # Add the arxiv prefix to the ids
     id = f"arxiv:{id}"
     try:
-        raw_ref = list(sch.get_paper_references(paper_id=id,
-                                                 fields=["paperId",
-                                                         "title",
-                                                         "year",
-                                                         "citationCount",
-                                                         "influentialCitationCount"]
-                                        ))
+        raw_ref = sch.get_paper_references(paper_id=id,
+                                                 # fields=["paperId",
+                                                 #         "title",
+                                                 #         "year",
+                                                 #         "citationCount",
+                                                 #         "influentialCitationCount",
+                                                 #         "isInfluential"
+                                                 #         ]
+                                        )
         # Post-processing result from Semantic Scholar
+        ref = []
         if raw_ref:
-            ref = [item["citedPaper"] for item in raw_ref if item["citedPaper"]["paperId"] is not None]
+            for item in raw_ref:
+                if item["citedPaper"]["paperId"] is not None:
+                    item["citedPaper"]["isInfluential"] = item["isInfluential"]
+                    ref.append(item["citedPaper"])
             return ref
         else:
             return []
@@ -173,11 +180,11 @@ if __name__ == "__main__":
     #         json.dump(papers, fp, indent=4)
 
 
-    # for year in range(2020, 2022):
+    # for year in range(2013, 2024):
     #     print(f"Fetching paper references from cat:hep-th in {year}")
     #     result = harvest_reference("hep-th", year)
     #     time.sleep(50)
-    #     with open(f"data/hep-th/{year}/output.json", "w") as fp:
+    #     with open(f"data/hep-th/{year}/output_influential.json", "w") as fp:
     #         json.dump(result, fp, indent=4)
 
     # Harvest data with arvix api
@@ -196,19 +203,48 @@ if __name__ == "__main__":
     # with open(f"data/cs.LG/cs.LG_2013_2023.json", "w") as fp:
     #     json.dump(title, fp, indent=4)
 
-    cat = "cs.CV"
-    for year in range(2013, 2020):
-        print(f"Start fetching reference from {year}")
-        results = []
-        df = pd.read_csv(f"data/{cat}/{year}/output_{year}_new.csv", header=0, index_col=0)
+    # cat = "econ.EM"
+    # for year in range(2021, 2022):
+    #     print(f"Start fetching reference from {year}")
+    #     results = []
+    #     df = pd.read_csv(f"data/{cat}/{year}/output_{year}_new.csv", header=0, index_col=0)
+    #
+    #     for index, row in tqdm(df.iterrows(), total=df.shape[0]):
+    #         if index % 500 == 0:
+    #             time.sleep(20)
+    #         id = row["link"].replace("http://arxiv.org/abs/","").split("v")[0]
+    #         references = get_reference(id)
+    #         results.append({"id": id, "reference": references})
+    #
+    #     with open(f"data/{cat}/{year}/output.json", "w") as fp:
+    #         json.dump(results,fp, indent=4)
 
-        for index, row in tqdm(df.iterrows(), total=df.shape[0]):
-            if index % 500 == 0:
-                time.sleep(20)
-            id = row["link"].replace("http://arxiv.org/abs/","").split("v")[0]
-            references = get_reference(id)
-            results.append({"id": id, "reference": references})
+    non_cs_cats = [
+        'math.AP',
+        'hep-ph',
+        'econ.GN',  # (General Economics) Economics
+        'eess.SP',  # (Signal Processing) Electrical Engineering and Systems Science
+        'q-bio.PE',  # (Populations and Evolution) Quantitative Biology
+        'q-fin.ST',  # (Statistical Finance) Quantitative Finance
+        'stat.ME' # (Methodology) Statistics
+    ]
 
-        with open(f"data/{cat}/{year}/output.json", "w") as fp:
-            json.dump(results,fp, indent=4)
+    with open(os.path.join(os.path.dirname(os.getcwd()), f"citationAge/data/categorization/non_cs.json"), "r") as fp:
+        content = json.load(fp)
+
+    for cat in non_cs_cats:
+        for year in range(2013, 2023):
+            results = []
+            ids = content[cat][str(year)]
+            for i, id in enumerate(tqdm(ids)):
+                if i % 500 == 0:
+                    time.sleep(20)
+                references = get_reference(id)
+                results.append({"id": id, "reference": references})
+            with open(f"data/{cat}/{year}/output.json", "w") as fp:
+                json.dump(results,fp, indent=4)
+
+
+
+
 
