@@ -18,15 +18,16 @@ crawler.py
 - This script is used to crawl the list of IDs of the publication  and fetch the references list from Semantic Scholar api.
   
 compare.py
-- This script download sample subset of papers PDF from arxiv, parses the pdf and performs the comparison automatically as defined in sanity_check.py
+- This script download sample subset of papers PDF from arxiv, parses the pdf and performs the comparison automatically as defined in sanity_check.py.
 
 sanity_check.py 
 - This scripts defines the classes of comparison we use to automatically compare the list of references we get from parsing the pdf with Science Parse and the reference provided on Semantic Scholar.
-analyse.py
+analyse.py.
 
-- miscelanneous processing.
+selenium_crawler.py 
+- This scripts defines the UI-based crawler to politely download PDFs from arxiv, aggressively crawl of PDFs on arxiv is restricted.
   
-Foler notebook:
+Folder notebook:
 - The folder contain jupyter notebook to generate the data statistics about the citation age.
 
 # Data
