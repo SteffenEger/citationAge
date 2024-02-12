@@ -9,7 +9,7 @@ from sanity_check import PaperPDFParser, get_entry_id_from_url
 from tqdm import tqdm
 from selenium import webdriver
 import os
-import time
+import matplotlib.pyplot as plt
 from analyse import normalize_age
 
 def choose_random_id(len_samp, num_samp):
@@ -185,8 +185,60 @@ def calculcate_from_science_parse(cat):
     df = pd.DataFrame(results, columns=["Year", "Mean", "Mode", "Median", "Threshold"])
     df.to_csv(f"data/{cat}/statistics_ss_500.csv", index=False)
 
-def calculate_deviation(cat):
-    pass
+
+def plot(docs, basepath):
+    """
+    Plot by cat and year
+    :param docs:
+    :param basepath:
+    :return:
+    """
+    error1 = []
+    error2 = []
+    error3 = []
+
+    for doc in docs:
+        with open(os.path.join(basepath, doc), "r") as fp:
+            content = json.load(fp)
+
+        # Count error 1
+        error1.append(len(content["check1"]["errors"]))
+
+        # Count error 2
+        error2.append(len(content["check2"]["errors"]))
+
+        # Count error 3
+        error3.append(len(content["check3"]["errors"]))
+
+    # Plot error 1
+    save_path = Path(basepath).parents[0]
+    fig1 = plt.figure(figsize=(10, 15))
+    plt.title('Reference published year greater than the original paper or missing', fontsize=20)
+    plt.xlabel('# numbers of errors')
+    plt.ylabel('# number of docs')
+    plt.hist(error1)
+    fig1.savefig(os.path.join(save_path, 'error1.png'))
+    plt.close()
+
+
+    # Plot error 2
+    fig2 = plt.figure(figsize=(10, 15))
+    plt.title('Reference published year greater than the original paper or missing')
+    plt.xlabel('# number of docs')
+    plt.ylabel('# numbers of errors')
+    plt.hist(error2)
+    fig2.savefig(os.path.join(save_path, 'error2.png'))
+    plt.title('Similar reference with slightly different name in the reference list')
+    plt.close()
+
+    # Plot error 3
+    fig3 = plt.figure(figsize=(10, 15))
+    plt.xlabel('# number of docs')
+    plt.ylabel('# numbers of errors')
+    plt.hist(error3)
+    fig3.savefig(os.path.join(save_path, 'error3.png'))
+    plt.title('The difference in the reference of the Semantic Scholar and parsed reference')
+    plt.close()
 
 if __name__ == "__main__":
     calculcate_from_science_parse("math.GM")
