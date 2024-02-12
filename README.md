@@ -1,6 +1,6 @@
 # Is there really a Citation Age Bias in NLP?
 
-This repository contains code for our paper - [Is there really a Citation Age Bias in NLP]([http://example.com](https://arxiv.org/abs/2401.03545). If you use it, please cite:
+This repository contains code for our paper - [Is there really a Citation Age Bias in NLP](https://arxiv.org/abs/2401.03545). If you use it, please cite:
 
 # Project structure
 
