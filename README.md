@@ -29,5 +29,6 @@ analyse.py
 Foler notebook:
 - The folder contain jupyter notebook to generate the data statistics about the citation age.
 
-The corresponding data can be found [here](https://drive.google.com/drive/folders/1k0GOvi9-m5Hrs4EO6O6iuskJOV7Oq5cl?usp=sharing).  
+# Data
+The corresponding data including the list of selected publications crawled from arxiv and Semantic Scholar can be found [here](https://drive.google.com/drive/folders/1k0GOvi9-m5Hrs4EO6O6iuskJOV7Oq5cl?usp=sharing).  
 
